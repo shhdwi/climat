@@ -9,12 +9,12 @@ class Location {
 
   Location(
       {this.version,
-        this.key,
-        this.type,
-        this.rank,
-        this.localizedName,
-        this.country,
-        this.administrativeArea});
+      this.key,
+      this.type,
+      this.rank,
+      this.localizedName,
+      this.country,
+      this.administrativeArea});
 
   Location.fromJson(Map<String, dynamic> json) {
     version = json['Version'];
@@ -23,7 +23,7 @@ class Location {
     rank = json['Rank'];
     localizedName = json['LocalizedName'];
     country =
-    json['Country'] != null ? Country.fromJson(json['Country']) : null;
+        json['Country'] != null ? Country.fromJson(json['Country']) : null;
     administrativeArea = json['AdministrativeArea'] != null
         ? Country.fromJson(json['AdministrativeArea'])
         : null;
@@ -58,7 +58,7 @@ class Country {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data =  <String, dynamic>{};
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['ID'] = iD;
     data['LocalizedName'] = localizedName;
     return data;

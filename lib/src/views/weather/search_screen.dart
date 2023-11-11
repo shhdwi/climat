@@ -1,42 +1,42 @@
 import 'dart:async';
+import 'package:auto_route/auto_route.dart';
+import 'package:climat/src/routes/routes_imports.gr.dart';
 import 'package:flutter/material.dart';
-import 'package:riverpod/riverpod.dart';
-// Assuming you have a data model and a service to fetch data
-class DataModel {
-  final String title;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../provider/search_provider.dart';
 
-  DataModel(this.title);
+@RoutePage()
+class WeatherPage extends StatefulWidget {
+  const WeatherPage({Key? key}) : super(key: key);
 
-// Add a method to parse JSON or any other parsing logic
+  @override
+  State<WeatherPage> createState() => _WeatherPageState();
 }
 
-class DataService {
-  Future<List<DataModel>> fetchData(String searchTerm) async {
-    // Implement your API call logic here and return a list of DataModels
-    // For example, you might call an HTTP client and parse the JSON response
-    await Future.delayed(Duration(seconds: 1)); // Simulating network delay
-    return List.generate(10, (index) => DataModel('Item $index for $searchTerm'));
+class _WeatherPageState extends State<WeatherPage> {
+  final _locationController = TextEditingController();
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("Search City"),
+        ),
+        body: const Padding(
+          padding: EdgeInsets.all(18.0),
+          child: SearchScreen(),
+        ));
   }
 }
 
-// State notifier to manage the fetching of data
-class DataNotifier extends StateNotifier<List<DataModel>> {
-  DataNotifier(this.ref) : super([]);
-  final Ref ref;
-
-  Future<void> fetchData(String searchTerm) async {
-    final data = await DataService().fetchData(searchTerm);
-    state = data;
-  }
-}
-
-// Provider to expose DataNotifier
-final dataProvider = StateNotifierProvider<DataNotifier, List<DataModel>>((ref) {
-  return DataNotifier(ref);
-});
-
-// Debouncer to handle the search term input
-final searchProvider = StateNotifierProvider<SearchStateNotifier, String>((ref) {
+final searchProvider =
+    StateNotifierProvider<SearchStateNotifier, String>((ref) {
   return SearchStateNotifier(ref);
 });
 
@@ -47,7 +47,7 @@ class SearchStateNotifier extends StateNotifier<String> {
 
   void setSearchTerm(String searchTerm) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
       // After the debounce time, fetch the data with the current search term
       await ref.read(dataProvider.notifier).fetchData(searchTerm);
       state = searchTerm; // Set the current state
@@ -61,13 +61,14 @@ class SearchStateNotifier extends StateNotifier<String> {
   }
 }
 
-class MyFormWidget extends ConsumerStatefulWidget {
+class SearchScreen extends ConsumerStatefulWidget {
+  const SearchScreen({super.key});
 
   @override
-  _MyFormWidgetState createState() => _MyFormWidgetState();
+  SearchScreenState createState() => SearchScreenState();
 }
 
-class _MyFormWidgetState extends ConsumerState<MyFormWidget> {
+class SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -92,7 +93,7 @@ class _MyFormWidgetState extends ConsumerState<MyFormWidget> {
       children: [
         TextField(
           controller: _controller,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Search',
           ),
         ),
@@ -102,7 +103,11 @@ class _MyFormWidgetState extends ConsumerState<MyFormWidget> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
-                title: Text(item.title),
+                title: Text(item.localizedName!),
+                onTap: () async {
+                  await AutoRouter.of(context).push(WeatherDetailPageRoute(
+                      cityCode: item.key!, city: item.localizedName!));
+                },
               );
             },
           ),
